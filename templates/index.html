@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>身份证图片生成器</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="navbar navbar-dark navbar-custom">
+  <div class="container-fluid px-4">
+    <span class="navbar-brand fw-bold fs-5">
+      <i class="fas fa-id-card me-2"></i>身份证图片生成器
+    </span>
+    <span class="text-white-50 small d-none d-md-inline">
+      <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+      仅供研究学习使用，请遵守相关法律法规
+    </span>
+  </div>
+</nav>
+
+<!-- 主体内容 -->
+<div class="container-xl py-4 px-3">
+  <div class="row g-4">
+
+    <!-- 左侧：表单区域 -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header section-header">
+          <i class="fas fa-pen-to-square me-2"></i>填写证件信息
+        </div>
+        <div class="card-body">
+          <form id="generateForm" novalidate>
+
+            <!-- 基本信息 -->
+            <div class="section-title">基本信息</div>
+            <div class="row g-3 mb-3">
+              <div class="col-12">
+                <label class="form-label">姓名</label>
+                <input type="text" class="form-control" name="name" id="name" required placeholder="请输入姓名" />
+              </div>
+              <div class="col-6">
+                <label class="form-label">性别</label>
+                <select class="form-select" name="sex" id="sex">
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">民族</label>
+                <input type="text" class="form-control" name="nation" id="nation" value="汉" placeholder="民族" />
+              </div>
+            </div>
+
+            <!-- 出生日期 -->
+            <div class="section-title">出生日期</div>
+            <div class="row g-2 mb-3">
+              <div class="col-5">
+                <input type="number" class="form-control" name="year" id="year"
+                       placeholder="年（如 1990）" min="1900" max="2020" />
+              </div>
+              <div class="col-3">
+                <input type="number" class="form-control" name="month" id="month"
+                       placeholder="月" min="1" max="12" />
+              </div>
+              <div class="col-4">
+                <input type="number" class="form-control" name="day" id="day"
+                       placeholder="日" min="1" max="31" />
+              </div>
+            </div>
+
+            <!-- 证件信息 -->
+            <div class="section-title">证件信息</div>
+            <div class="row g-3 mb-3">
+              <div class="col-12">
+                <label class="form-label">住址</label>
+                <input type="text" class="form-control" name="addr" id="addr" placeholder="请输入详细住址" />
+              </div>
+              <div class="col-12">
+                <label class="form-label">证件号码</label>
+                <input type="text" class="form-control font-monospace" name="idn" id="idn"
+                       maxlength="18" placeholder="18 位身份证号码" />
+              </div>
+              <div class="col-12">
+                <label class="form-label">签发机关</label>
+                <input type="text" class="form-control" name="org" id="org" placeholder="签发机关名称" />
+              </div>
+              <div class="col-12">
+                <label class="form-label">有效期限</label>
+                <input type="text" class="form-control" name="life" id="life"
+                       placeholder="如：2015.01.01-2025.01.01" />
+              </div>
+            </div>
+
+            <!-- 头像上传 -->
+            <div class="section-title">头像照片</div>
+            <div class="upload-area mb-3" id="uploadArea" tabindex="0" role="button"
+                 aria-label="点击或拖拽上传头像">
+              <div class="upload-placeholder" id="uploadPlaceholder">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-1 text-muted fw-medium">拖拽图片到此处，或点击上传</p>
+                <p class="small text-muted mb-0">支持 JPG、PNG 格式</p>
+              </div>
+              <img id="avatarPreview" class="avatar-preview" alt="头像预览" />
+              <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/jpg" hidden />
+            </div>
+
+            <!-- 选项 -->
+            <div class="form-check mb-4">
+              <input class="form-check-input" type="checkbox" id="useMatting" name="use_matting" checked />
+              <label class="form-check-label" for="useMatting">
+                自动抠图（去除纯色背景）
+              </label>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary" id="randomBtn">
+                <i class="fas fa-shuffle me-1"></i>随机填充
+              </button>
+              <button type="submit" class="btn btn-primary flex-grow-1" id="generateBtn">
+                <i class="fas fa-wand-magic-sparkles me-1"></i>生成身份证
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：预览区域 -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header section-header-green">
+          <i class="fas fa-eye me-2"></i>预览结果
+        </div>
+        <div class="card-body d-flex flex-column align-items-center justify-content-center" id="previewContainer">
+
+          <!-- 空状态 -->
+          <div id="emptyState" class="text-center text-muted py-5">
+            <i class="fas fa-id-card fa-5x mb-4 opacity-25"></i>
+            <p class="fs-5 mb-1">尚未生成</p>
+            <p class="small">填写左侧信息并上传头像后，点击「生成身份证」</p>
+          </div>
+
+          <!-- 加载中 -->
+          <div id="loadingState" class="text-center py-5" style="display:none;">
+            <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
+            <p class="text-muted mt-2">正在生成身份证图片，请稍候…</p>
+          </div>
+
+          <!-- 结果展示 -->
+          <div id="resultState" class="w-100" style="display:none;">
+            <!-- Tab 切换 -->
+            <ul class="nav nav-pills mb-3 justify-content-center" id="resultTabs">
+              <li class="nav-item">
+                <button class="nav-link active" data-tab="color">
+                  <i class="fas fa-palette me-1"></i>彩色版
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-tab="bw">
+                  <i class="fas fa-circle-half-stroke me-1"></i>黑白版
+                </button>
+              </li>
+            </ul>
+
+            <!-- 图片预览 -->
+            <div class="result-image-wrap text-center mb-3">
+              <img id="colorResult" class="result-image" alt="彩色身份证" />
+              <img id="bwResult" class="result-image" alt="黑白身份证" style="display:none;" />
+            </div>
+
+            <!-- 下载按钮 -->
+            <div class="d-flex gap-2">
+              <a id="downloadColor" class="btn btn-success flex-grow-1" download="color.png">
+                <i class="fas fa-download me-2"></i>下载彩色版
+              </a>
+              <a id="downloadBw" class="btn btn-outline-secondary flex-grow-1" download="bw.png">
+                <i class="fas fa-download me-2"></i>下载黑白版
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer-bar">
+  <div class="container text-center">
+    <span class="text-muted small">
+      仅供研究学习使用，请遵守当地法律法规，法律后果自负。
+      &nbsp;|&nbsp;
+      <a href="https://github.com/bzsome" target="_blank" class="text-muted">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
