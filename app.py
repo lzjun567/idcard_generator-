@@ -45,6 +45,11 @@ def api_random():
 @app.route('/api/generate', methods=['POST'])
 def api_generate():
     """接收表单数据和头像，生成身份证图片，返回 base64 编码"""
+    print('=== /api/generate ===')
+    print('request.files keys:', list(request.files.keys()))
+    print('request.form keys:', list(request.form.keys()))
+    for k, f in request.files.items():
+        print(f'  file [{k}]: filename={f.filename!r}, content_type={f.content_type}')
     avatar_file = request.files.get('avatar')
     if not avatar_file or avatar_file.filename == '':
         return jsonify({'error': '请上传头像图片'}), 400
