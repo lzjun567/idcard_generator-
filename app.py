@@ -44,36 +44,38 @@ def api_random():
 
 @app.route('/api/generate', methods=['POST'])
 def api_generate():
-    """接收表单数据和头像，生成身份证图片，返回 base64 编码"""
-    print('=== /api/generate ===')
-    print('Content-Type:', request.content_type)
-    print('Content-Length:', request.content_length)
-    try:
-        print('request.files keys:', list(request.files.keys()))
-        print('request.form keys:', list(request.form.keys()))
-        for k, f in request.files.items():
-            print(f'  file [{k}]: filename={f.filename!r}, content_type={f.content_type}')
-    except Exception as parse_err:
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': f'请求解析失败：{parse_err}'}), 400
-    avatar_file = request.files.get('avatar')
-    if not avatar_file or avatar_file.filename == '':
+    """接收 JSON（含 base64 头像），生成身份证图片，返回 base64 编码"""
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({'error': '请求格式错误，需要 JSON'}), 400
+
+    avatar_b64 = payload.get('avatar', '')
+    if not avatar_b64:
         return jsonify({'error': '请上传头像图片'}), 400
 
+    # 去掉 data URL 前缀（data:image/png;base64,xxx）
+    if ',' in avatar_b64:
+        avatar_b64 = avatar_b64.split(',', 1)[1]
+
+    try:
+        avatar_bytes = base64.b64decode(avatar_b64)
+        avatar_file = io.BytesIO(avatar_bytes)
+    except Exception:
+        return jsonify({'error': '头像图片解析失败'}), 400
+
     data = {
-        'name':  request.form.get('name', ''),
-        'sex':   request.form.get('sex', ''),
-        'nation': request.form.get('nation', ''),
-        'year':  request.form.get('year', ''),
-        'month': request.form.get('month', ''),
-        'day':   request.form.get('day', ''),
-        'addr':  request.form.get('addr', ''),
-        'idn':   request.form.get('idn', ''),
-        'org':   request.form.get('org', ''),
-        'life':  request.form.get('life', ''),
+        'name':   payload.get('name', ''),
+        'sex':    payload.get('sex', ''),
+        'nation': payload.get('nation', ''),
+        'year':   payload.get('year', ''),
+        'month':  payload.get('month', ''),
+        'day':    payload.get('day', ''),
+        'addr':   payload.get('addr', ''),
+        'idn':    payload.get('idn', ''),
+        'org':    payload.get('org', ''),
+        'life':   payload.get('life', ''),
     }
-    use_matting = request.form.get('use_matting', 'true').lower() == 'true'
+    use_matting = payload.get('use_matting', True)
 
     try:
         color_img, bw_img = generate_id_card(data, avatar_file, use_matting=use_matting)
