@@ -126,16 +126,27 @@ function generateIdCard() {
 
   showState('loading');
 
-  const formData = new FormData(document.getElementById('generateForm'));
+  // 手动构建 FormData，避免 form 内无 name 属性的 file input 被漏掉
+  const form = document.getElementById('generateForm');
+  const formData = new FormData();
   formData.append('avatar', avatarInput.files[0]);
-  // 同步 checkbox 状态（FormData 默认不含 unchecked checkbox）
-  formData.set('use_matting', document.getElementById('useMatting').checked ? 'true' : 'false');
+  formData.append('name',   form.name.value);
+  formData.append('sex',    form.sex.value);
+  formData.append('nation', form.nation.value);
+  formData.append('year',   form.year.value);
+  formData.append('month',  form.month.value);
+  formData.append('day',    form.day.value);
+  formData.append('addr',   form.addr.value);
+  formData.append('idn',    form.idn.value);
+  formData.append('org',    form.org.value);
+  formData.append('life',   form.life.value);
+  formData.append('use_matting', document.getElementById('useMatting').checked ? 'true' : 'false');
 
   fetch('/api/generate', { method: 'POST', body: formData })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) {
-        alert('生成失败：' + data.error);
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok || data.error) {
+        alert('生成失败：' + (data.error || '未知错误'));
         showState('empty');
         return;
       }
