@@ -46,10 +46,17 @@ def api_random():
 def api_generate():
     """接收表单数据和头像，生成身份证图片，返回 base64 编码"""
     print('=== /api/generate ===')
-    print('request.files keys:', list(request.files.keys()))
-    print('request.form keys:', list(request.form.keys()))
-    for k, f in request.files.items():
-        print(f'  file [{k}]: filename={f.filename!r}, content_type={f.content_type}')
+    print('Content-Type:', request.content_type)
+    print('Content-Length:', request.content_length)
+    try:
+        print('request.files keys:', list(request.files.keys()))
+        print('request.form keys:', list(request.form.keys()))
+        for k, f in request.files.items():
+            print(f'  file [{k}]: filename={f.filename!r}, content_type={f.content_type}')
+    except Exception as parse_err:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'请求解析失败：{parse_err}'}), 400
     avatar_file = request.files.get('avatar')
     if not avatar_file or avatar_file.filename == '':
         return jsonify({'error': '请上传头像图片'}), 400
